@@ -4,7 +4,7 @@ import '../widgets/text_input_field.dart';
 
 /// Pantalla de Registro de Usuario
 class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({Key? key}) : super(key: key);
+  const RegistrationScreen({super.key});
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();

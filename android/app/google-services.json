@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "950425569660",
+    "project_id": "mide-app-issste",
+    "storage_bucket": "mide-app-issste.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:950425569660:android:9a82d1b4946e064ca7fcf9",
+        "android_client_info": {
+          "package_name": "com.example.mide_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLJCAtx5GB_2zUz7r6EMpzgdOAbAkHSlg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

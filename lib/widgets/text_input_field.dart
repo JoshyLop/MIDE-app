@@ -22,14 +22,14 @@ class TextInputField extends StatelessWidget {
   final Function(String)? onChanged;
 
   const TextInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     required this.hintText,
     required this.prefixIcon,
     this.obscureText = false,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
