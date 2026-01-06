@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/text_input_field.dart';
-import 'registration_screen.dart';
 
-/// Pantalla de Inicio de Sesión
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+/// Pantalla de Registro de Usuario
+class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  // Controlador para el RFC
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  // Controladores para manejar los inputs del usuario
+  final nameController = TextEditingController();
+  final lastNameController = TextEditingController();
   final rfcController = TextEditingController();
+  final phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Inicio de Sesión'),
+      appBar: CustomAppBar(title: 'Registro'),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -43,9 +45,9 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: 32),
               
-              // TÍTULO "Iniciar sesión" en color vino
+              // TÍTULO "Registro" en color vino
               const Text(
-                'Iniciar sesión',
+                'Registro',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -55,12 +57,36 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: 32),
               
+              // CAMPO NOMBRE
+              TextInputField(
+                controller: nameController,
+                label: 'Nombre',
+                hintText: 'Ingresa tu nombre',
+                prefixIcon: Icons.person,
+              ),
+              
+              // CAMPO APELLIDOS
+              TextInputField(
+                controller: lastNameController,
+                label: 'Apellidos',
+                hintText: 'Ingresa tus apellidos',
+                prefixIcon: Icons.person_outline,
+              ),
+              
               // CAMPO RFC
               TextInputField(
                 controller: rfcController,
                 label: 'RFC',
                 hintText: 'Ingresa tu RFC',
                 prefixIcon: Icons.assignment,
+              ),
+              
+              // CAMPO TELÉFONO
+              TextInputField(
+                controller: phoneController,
+                label: 'Teléfono',
+                hintText: 'Ingresa tu teléfono',
+                prefixIcon: Icons.phone,
               ),
               
               const SizedBox(height: 24),
@@ -77,8 +103,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () {
-                    // Aquí irá la lógica de login
+                    // Aquí irá la lógica de registro
+                    print('Registrarse con:');
+                    print('Nombre: ${nameController.text}');
+                    print('Apellidos: ${lastNameController.text}');
                     print('RFC: ${rfcController.text}');
+                    print('Teléfono: ${phoneController.text}');
                   },
                   child: const Text(
                     'Iniciar',
@@ -93,23 +123,18 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: 16),
               
-              // LINK A REGISTRO
+              // LINK A INICIO DE SESIÓN
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('¿No tienes cuenta? '),
+                  const Text('¿Ya tienes cuenta? '),
                   GestureDetector(
                     onTap: () {
-                      // Navegar a registro
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegistrationScreen(),
-                        ),
-                      );
+                      // Navegar a login
+                      Navigator.pop(context);
                     },
                     child: const Text(
-                      'Registrarme',
+                      'Iniciar sesión',
                       style: TextStyle(
                         color: Color.fromARGB(255, 110, 13, 13),
                         fontWeight: FontWeight.bold,
@@ -128,8 +153,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    nameController.dispose();
+    lastNameController.dispose();
     rfcController.dispose();
+    phoneController.dispose();
     super.dispose();
   }
 }
-
