@@ -48,6 +48,17 @@ unlinked_spec.ds
 
 # Android related
 **/android/**/gradle-wrapper.jar
+**/android/**/gradle-wrapper.properties
+**/android/**/gradlew
+**/android/**/gradlew.bat
+**/android/**/local.properties
+**/android/**/key.properties
+**/*.jks
+**/*.keystore
+
+# Firebase configuration (contains sensitive credentials)
+**/google-services.json
+**/*-firebase-config.json
 .gradle/
 **/android/captures/
 **/android/gradlew
