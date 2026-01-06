@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/text_input_field.dart';
+import '../services/firebase_service.dart';
 import 'registration_screen.dart';
+import 'home_screen.dart';
 
 /// Pantalla de Inicio de Sesión
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -77,8 +79,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () {
-                    // Aquí irá la lógica de login
-                    print('RFC: ${rfcController.text}');
+                    if (rfcController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Por favor ingresa tu RFC')),
+                      );
+                      return;
+                    }
+                    // Guardar el RFC en el servicio Firebase
+                    FirebaseService().setCurrentUserRfc(rfcController.text);
+                    
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
                   },
                   child: const Text(
                     'Iniciar',

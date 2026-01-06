@@ -1,21 +1,70 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
+import '../services/firebase_service.dart';
+import '../models/monthly_goal.dart';
 
 /// Pantalla de Metas - Muestra los objetivos y progreso del usuario
-class GoalsScreen extends StatelessWidget {
-  const GoalsScreen({Key? key}) : super(key: key);
+class GoalsScreen extends StatefulWidget {
+  const GoalsScreen({super.key});
+
+  @override
+  State<GoalsScreen> createState() => _GoalsScreenState();
+}
+
+class _GoalsScreenState extends State<GoalsScreen> {
+  late Future<String> _monthFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _monthFuture = _getCurrentMonth();
+  }
+
+  /// Obtiene el mes actual en formato "YYYY-MM"
+  Future<String> _getCurrentMonth() async {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: 'Mis Metas'),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // CUADRO BEIGE INICIAL - "¡Trabajemos juntos!"
-              Container(
+      body: FutureBuilder<String>(
+        future: _monthFuture,
+        builder: (context, monthSnapshot) {
+          if (!monthSnapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final currentMonth = monthSnapshot.data!;
+
+          return StreamBuilder<List<MonthlyGoal>>(
+            stream: FirebaseService().getMonthlyGoalsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              // Obtener la meta del mes actual
+              MonthlyGoal? currentMonthGoal;
+              if (snapshot.hasData && snapshot.data != null) {
+                try {
+                  currentMonthGoal = snapshot.data!
+                      .firstWhere((goal) => goal.month == currentMonth);
+                } catch (e) {
+                  // No hay meta para este mes
+                  currentMonthGoal = null;
+                }
+              }
+
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // CUADRO BEIGE INICIAL - "¡Trabajemos juntos!"
+                      Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.amber[50],
@@ -68,7 +117,7 @@ class GoalsScreen extends StatelessWidget {
                 icon: Icons.trending_up,
                 description: 'Manten tus niveles de glucosa dentro del rango saludable, la mayor parte del tiempo',
                 goal: 'Meta: 70% o más',
-                progress: 0.75, // 75%
+                progress: (currentMonthGoal?.measurementsInRangePercent ?? 75) / 100,
               ),
               
               const SizedBox(height: 16),
@@ -79,7 +128,7 @@ class GoalsScreen extends StatelessWidget {
                 icon: Icons.trending_down,
                 description: 'Manten tus niveles de glucosa seguros, evitando que bajen demasiado',
                 goal: 'Meta: Menos del 4%',
-                progress: 0.15, // 15%
+                progress: (currentMonthGoal?.lowLevelsPercent ?? 15) / 100,
               ),
               
               const SizedBox(height: 16),
@@ -90,12 +139,16 @@ class GoalsScreen extends StatelessWidget {
                 icon: Icons.medical_services,
                 description: 'Este valor muestra tu control de glucosa en los últimos 3 meses',
                 goal: 'Meta: Menos del 7%',
-                progress: 0.55, // 55%
+                progress: (currentMonthGoal?.hba1cPercent ?? 55) / 100,
                 label: 'HbA1c',
               ),
-            ],
-          ),
-        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

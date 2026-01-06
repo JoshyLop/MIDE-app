@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
+import '../services/firebase_service.dart';
 import 'history_screen.dart';
 import 'goals_screen.dart';
 
 /// Pantalla Principal - Registro de Glucosa
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -53,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 110, 13, 13),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -64,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => const GoalsScreen()),
                         );
                       },
-                      child: const Text(
+                      icon: const Icon(Icons.flag, color: Colors.white),
+                      label: const Text(
                         'Metas',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -72,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 110, 13, 13),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -83,7 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => const HistoryScreen()),
                         );
                       },
-                      child: const Text(
+                      icon: const Icon(Icons.history, color: Colors.white),
+                      label: const Text(
                         'Historial',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -317,12 +320,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Aquí guardaría en la base de datos
-                        print('Medición confirmada');
-                        glucoseController.clear();
-                        setState(() => selectedMealTime = null);
+                      onPressed: () async {
+                        try {
+                          // Guardar la medición en Firebase
+                          await FirebaseService().saveMeasurement(
+                            glucose: double.parse(tempGlucose ?? '0'),
+                            mealTime: tempMealTime ?? 'Desconocido',
+                          );
+
+                          Navigator.pop(context);
+                          // Mostrar confirmación
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Medición guardada correctamente'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          glucoseController.clear();
+                          setState(() => selectedMealTime = null);
+                        } catch (e) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error al guardar: $e'),
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
                       },
                       child: const Text(
                         'Confirmar',
