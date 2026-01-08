@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/measurement.dart';
 import '../models/monthly_goal.dart';
+import '../models/patient.dart';
 
 /// Servicio para interactuar con Firebase Firestore
 /// Maneja todas las operaciones de guardado y lectura de datos
@@ -196,5 +197,80 @@ class FirebaseService {
       'normalPercent': (normalCount / measurements.length * 100).toStringAsFixed(1),
       'highPercent': (highCount / measurements.length * 100).toStringAsFixed(1),
     };
+  }
+
+  /// METAS - Stream de metas mensuales (placeholder por ahora)
+  Stream<List<MonthlyGoal>> getMonthlyGoalsStream() {
+    // Por ahora retorna stream vacío, puede actualizarse después
+    return Stream.value([]);
+  }
+
+  /// PACIENTES - Guardar un nuevo paciente
+  Future<void> savePatient({
+    required String rfc,
+    required String nombre,
+    required String apellido,
+    required String correo,
+    required String telefono,
+    required String tipoPatiente,
+    DateTime? fechaNacimiento,
+    String? direccion,
+  }) async {
+    try {
+      final patient = Patient(
+        rfc: rfc,
+        nombre: nombre,
+        apellido: apellido,
+        correo: correo,
+        telefono: telefono,
+        tipoPatiente: tipoPatiente,
+        fechaNacimiento: fechaNacimiento,
+        direccion: direccion,
+      );
+
+      await _firestore.collection('Paciente').doc(rfc).set(patient.toJson());
+      
+      print('✅ [Firebase] Paciente guardado exitosamente');
+      print('   RFC: $rfc');
+      print('   Nombre: $nombre $apellido');
+      print('   Tipo: $tipoPatiente');
+      print('   Correo: $correo');
+      print('   Teléfono: $telefono');
+    } catch (e) {
+      print('❌ [Firebase] Error al guardar paciente: $e');
+      throw Exception('Error al guardar paciente: $e');
+    }
+  }
+
+  /// PACIENTES - Obtener datos de un paciente por RFC
+  Future<Patient?> getPatient(String rfc) async {
+    try {
+      final doc = await _firestore.collection('Paciente').doc(rfc).get();
+      
+      if (doc.exists) {
+        print('✅ [Firebase] Paciente encontrado: $rfc');
+        return Patient.fromJson(doc.data()!);
+      } else {
+        print('⚠️ [Firebase] Paciente no encontrado: $rfc');
+        return null;
+      }
+    } catch (e) {
+      print('❌ [Firebase] Error al obtener paciente: $e');
+      throw Exception('Error al obtener paciente: $e');
+    }
+  }
+
+  /// PACIENTES - Stream de datos de un paciente (actualización en tiempo real)
+  Stream<Patient?> getPatientStream(String rfc) {
+    return _firestore
+        .collection('Paciente')
+        .doc(rfc)
+        .snapshots()
+        .map((doc) {
+      if (doc.exists) {
+        return Patient.fromJson(doc.data()!);
+      }
+      return null;
+    });
   }
 }

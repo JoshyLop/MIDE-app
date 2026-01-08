@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/text_input_field.dart';
+import '../services/firebase_service.dart';
 
 /// Pantalla de Registro de Usuario
 class RegistrationScreen extends StatefulWidget {
@@ -15,7 +16,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final nameController = TextEditingController();
   final lastNameController = TextEditingController();
   final rfcController = TextEditingController();
+  final emailController = TextEditingController();
   final phoneController = TextEditingController();
+
+  // Variable para el tipo de paciente
+  String selectedPatientType = 'regular';
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +86,74 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 prefixIcon: Icons.assignment,
               ),
               
+              // CAMPO CORREO
+              TextInputField(
+                controller: emailController,
+                label: 'Correo Electrónico',
+                hintText: 'Ingresa tu correo',
+                prefixIcon: Icons.email,
+              ),
+              
               // CAMPO TELÉFONO
               TextInputField(
                 controller: phoneController,
                 label: 'Teléfono',
                 hintText: 'Ingresa tu teléfono',
                 prefixIcon: Icons.phone,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // TIPO DE PACIENTE
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tipo de Paciente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Regular'),
+                            value: 'regular',
+                            groupValue: selectedPatientType,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedPatientType = value!;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('No Regular'),
+                            value: 'no_regular',
+                            groupValue: selectedPatientType,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedPatientType = value!;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               
               const SizedBox(height: 24),
@@ -102,16 +169,65 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    // Aquí irá la lógica de registro
-                    print('Registrarse con:');
-                    print('Nombre: ${nameController.text}');
-                    print('Apellidos: ${lastNameController.text}');
-                    print('RFC: ${rfcController.text}');
-                    print('Teléfono: ${phoneController.text}');
+                  onPressed: () async {
+                    // Validar campos obligatorios
+                    if (nameController.text.isEmpty ||
+                        lastNameController.text.isEmpty ||
+                        rfcController.text.isEmpty ||
+                        emailController.text.isEmpty ||
+                        phoneController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Por favor completa todos los campos'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+
+                    try {
+                      print('📤 [App] Registrando nuevo paciente...');
+                      
+                      // Guardar paciente en Firebase
+                      await FirebaseService().savePatient(
+                        rfc: rfcController.text.trim(),
+                        nombre: nameController.text.trim(),
+                        apellido: lastNameController.text.trim(),
+                        correo: emailController.text.trim(),
+                        telefono: phoneController.text.trim(),
+                        tipoPatiente: selectedPatientType,
+                      );
+
+                      // Mostrar mensaje de éxito
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Paciente registrado correctamente'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+
+                      // Limpiar campos y volver al login
+                      nameController.clear();
+                      lastNameController.clear();
+                      rfcController.clear();
+                      emailController.clear();
+                      phoneController.clear();
+                      
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      print('❌ [App] Error: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al registrar: $e'),
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                   child: const Text(
-                    'Iniciar',
+                    'Registrarse',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
