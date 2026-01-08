@@ -322,6 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       onPressed: () async {
                         try {
+                          print('📤 [App] Intentando guardar medición...');
                           // Guardar la medición en Firebase
                           await FirebaseService().saveMeasurement(
                             glucose: double.parse(tempGlucose ?? '0'),
@@ -339,6 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           glucoseController.clear();
                           setState(() => selectedMealTime = null);
                         } catch (e) {
+                          print('❌ [App] Error: $e');
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

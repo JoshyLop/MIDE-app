@@ -21,6 +21,7 @@ class FirebaseService {
   /// Establece el RFC del usuario actual (llamar después del login)
   void setCurrentUserRfc(String rfc) {
     _currentUserRfc = rfc;
+    print('🔐 [Firebase] RFC configurado: $rfc');
   }
 
   /// Obtiene el RFC del usuario actual
@@ -39,31 +40,33 @@ class FirebaseService {
 
     try {
       final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final monthStr = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-
+      
+      // Determinar tipo: 0 = "Antes de comer", 1 = "Después de comer"
+      final tipo = mealTime.toLowerCase().contains('antes') ? 0 : 1;
+      
       // Determinar si es normal (70-130 mg/dL) o alto
       final isNormal = glucose >= 70 && glucose <= 130;
 
-      final measurement = Measurement(
-        id: _firestore.collection('users').doc().id,
-        rfc: _currentUserRfc!,
-        glucose: glucose,
-        mealTime: mealTime,
-        timestamp: now,
-        date: dateStr,
-        month: monthStr,
-        isNormal: isNormal,
-      );
-
-      // Guardar en Firestore: users/{rfc}/measurements/{medicionId}
-      await _firestore
-          .collection('users')
-          .doc(_currentUserRfc)
-          .collection('measurements')
-          .doc(measurement.id)
-          .set(measurement.toJson());
+      // Guardar en Firestore: Medicion_Glucosa/{idAleatorio}
+      final docRef = _firestore.collection('Medicion_Glucosa').doc();
+      
+      await docRef.set({
+        'curp': _currentUserRfc, // RFC del usuario
+        'fecha_hora': now,
+        'tipo': tipo, // 0 = antes, 1 = después
+        'valor_glucosa': glucose,
+        'isNormal': isNormal, // Campo adicional para facilitar consultas
+        'mealTimeLabel': mealTime, // Label para mostrar en UI
+      });
+      
+      print('✅ [Firebase] Medición guardada exitosamente');
+      print('   CURP: $_currentUserRfc');
+      print('   Glucosa: $glucose mg/dL');
+      print('   Tipo: ${tipo == 0 ? 'Antes de comer' : 'Después de comer'}');
+      print('   ID Documento: ${docRef.id}');
+      print('   Timestamp: $now');
     } catch (e) {
+      print('❌ [Firebase] Error al guardar: $e');
       throw Exception('Error al guardar medición: $e');
     }
   }
@@ -76,16 +79,26 @@ class FirebaseService {
 
     try {
       final snapshot = await _firestore
-          .collection('users')
-          .doc(_currentUserRfc)
-          .collection('measurements')
-          .orderBy('timestamp', descending: true)
+          .collection('Medicion_Glucosa')
+          .where('curp', isEqualTo: _currentUserRfc)
+          .orderBy('fecha_hora', descending: true)
           .get();
 
-      return snapshot.docs
-          .map((doc) => Measurement.fromJson(doc.data()))
-          .toList();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Measurement(
+          id: doc.id,
+          rfc: data['curp'] as String,
+          glucose: (data['valor_glucosa'] as num).toDouble(),
+          mealTime: data['mealTimeLabel'] as String? ?? 'Desconocido',
+          timestamp: (data['fecha_hora'] as Timestamp).toDate(),
+          date: (data['fecha_hora'] as Timestamp).toDate().toString().split(' ')[0],
+          month: _getMonthFromTimestamp(data['fecha_hora'] as Timestamp),
+          isNormal: data['isNormal'] as bool? ?? false,
+        );
+      }).toList();
     } catch (e) {
+      print('❌ [Firebase] Error al obtener mediciones: $e');
       throw Exception('Error al obtener mediciones: $e');
     }
   }
@@ -98,17 +111,29 @@ class FirebaseService {
 
     try {
       final snapshot = await _firestore
-          .collection('users')
-          .doc(_currentUserRfc)
-          .collection('measurements')
-          .where('month', isEqualTo: month)
-          .orderBy('timestamp', descending: true)
+          .collection('Medicion_Glucosa')
+          .where('curp', isEqualTo: _currentUserRfc)
+          .orderBy('fecha_hora', descending: true)
           .get();
 
-      return snapshot.docs
-          .map((doc) => Measurement.fromJson(doc.data()))
-          .toList();
+      // Filtrar por mes en memoria
+      final measurements = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Measurement(
+          id: doc.id,
+          rfc: data['curp'] as String,
+          glucose: (data['valor_glucosa'] as num).toDouble(),
+          mealTime: data['mealTimeLabel'] as String? ?? 'Desconocido',
+          timestamp: (data['fecha_hora'] as Timestamp).toDate(),
+          date: (data['fecha_hora'] as Timestamp).toDate().toString().split(' ')[0],
+          month: _getMonthFromTimestamp(data['fecha_hora'] as Timestamp),
+          isNormal: data['isNormal'] as bool? ?? false,
+        );
+      }).where((m) => m.month == month).toList();
+
+      return measurements;
     } catch (e) {
+      print('❌ [Firebase] Error al obtener mediciones del mes: $e');
       throw Exception('Error al obtener mediciones del mes: $e');
     }
   }
@@ -120,91 +145,32 @@ class FirebaseService {
     }
 
     return _firestore
-        .collection('users')
-        .doc(_currentUserRfc)
-        .collection('measurements')
-        .orderBy('timestamp', descending: true)
+        .collection('Medicion_Glucosa')
+        .where('curp', isEqualTo: _currentUserRfc)
+        .orderBy('fecha_hora', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Measurement.fromJson(doc.data()))
-            .toList());
+        .map((snapshot) => snapshot.docs.map((doc) {
+          final data = doc.data();
+          return Measurement(
+            id: doc.id,
+            rfc: data['curp'] as String,
+            glucose: (data['valor_glucosa'] as num).toDouble(),
+            mealTime: data['mealTimeLabel'] as String? ?? 'Desconocido',
+            timestamp: (data['fecha_hora'] as Timestamp).toDate(),
+            date: (data['fecha_hora'] as Timestamp).toDate().toString().split(' ')[0],
+            month: _getMonthFromTimestamp(data['fecha_hora'] as Timestamp),
+            isNormal: data['isNormal'] as bool? ?? false,
+          );
+        }).toList());
   }
 
-  /// METAS - Guardar o actualizar las metas del mes
-  Future<void> saveMonthlyGoal({
-    required String month,
-    required double measurementsInRangePercent,
-    required double lowLevelsPercent,
-    required double hba1cPercent,
-  }) async {
-    if (_currentUserRfc == null) {
-      throw Exception('RFC de usuario no configurado');
-    }
-
-    try {
-      final now = DateTime.now();
-      final monthlyGoal = MonthlyGoal(
-        id: '${_currentUserRfc}_$month',
-        rfc: _currentUserRfc!,
-        month: month,
-        measurementsInRangePercent: measurementsInRangePercent,
-        lowLevelsPercent: lowLevelsPercent,
-        hba1cPercent: hba1cPercent,
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      // Guardar en Firestore: users/{rfc}/monthlyGoals/{month}
-      await _firestore
-          .collection('users')
-          .doc(_currentUserRfc)
-          .collection('monthlyGoals')
-          .doc(month)
-          .set(monthlyGoal.toJson());
-    } catch (e) {
-      throw Exception('Error al guardar meta mensual: $e');
-    }
+  /// Helper para extraer mes de Timestamp
+  String _getMonthFromTimestamp(Timestamp timestamp) {
+    final date = timestamp.toDate();
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
   }
 
-  /// METAS - Obtener la meta del mes
-  Future<MonthlyGoal?> getMonthlyGoal(String month) async {
-    if (_currentUserRfc == null) {
-      throw Exception('RFC de usuario no configurado');
-    }
 
-    try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(_currentUserRfc)
-          .collection('monthlyGoals')
-          .doc(month)
-          .get();
-
-      if (doc.exists) {
-        return MonthlyGoal.fromJson(doc.data()!);
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Error al obtener meta mensual: $e');
-    }
-  }
-
-  /// METAS - Stream de metas mensuales
-  Stream<List<MonthlyGoal>> getMonthlyGoalsStream() {
-    if (_currentUserRfc == null) {
-      throw Exception('RFC de usuario no configurado');
-    }
-
-    return _firestore
-        .collection('users')
-        .doc(_currentUserRfc)
-        .collection('monthlyGoals')
-        .orderBy('month', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => MonthlyGoal.fromJson(doc.data()))
-            .toList());
-  }
 
   /// ESTADÍSTICAS - Calcular estadísticas del mes actual
   Future<Map<String, dynamic>> getMonthlyStats(String month) async {
