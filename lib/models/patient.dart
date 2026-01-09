@@ -6,6 +6,7 @@ class Patient {
   final String correo;
   final String telefono;
   final String tipoPatiente; // "regular" o "no_regular"
+  final String origen; // "web" (registrado por enfermera) o "app" (auto-registro)
   final DateTime? fechaNacimiento; // Opcional
   final String? direccion; // Opcional
 
@@ -16,6 +17,7 @@ class Patient {
     required this.correo,
     required this.telefono,
     required this.tipoPatiente,
+    required this.origen,
     this.fechaNacimiento,
     this.direccion,
   });
@@ -29,6 +31,7 @@ class Patient {
       'correo': correo,
       'telefono': telefono,
       'tipoPatiente': tipoPatiente,
+      'origen': origen,
       'fechaNacimiento': fechaNacimiento,
       'direccion': direccion,
     };
@@ -40,9 +43,10 @@ class Patient {
       rfc: json['rfc'] as String,
       nombre: json['nombre'] as String,
       apellido: json['apellido'] as String,
-      correo: json['correo'] as String,
+      correo: json['correo'] as String? ?? '',
       telefono: json['telefono'] as String,
-      tipoPatiente: json['tipoPatiente'] as String? ?? 'regular',
+      tipoPatiente: json['tipoPatiente'] as String? ?? '',
+      origen: json['origen'] as String? ?? 'app',
       fechaNacimiento: json['fechaNacimiento'] != null
           ? DateTime.parse(json['fechaNacimiento'] as String)
           : null,

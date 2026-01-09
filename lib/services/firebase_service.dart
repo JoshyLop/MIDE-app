@@ -213,6 +213,7 @@ class FirebaseService {
     required String correo,
     required String telefono,
     required String tipoPatiente,
+    String origen = 'app', // Por defecto "app", puede ser "web"
     DateTime? fechaNacimiento,
     String? direccion,
   }) async {
@@ -224,6 +225,7 @@ class FirebaseService {
         correo: correo,
         telefono: telefono,
         tipoPatiente: tipoPatiente,
+        origen: origen,
         fechaNacimiento: fechaNacimiento,
         direccion: direccion,
       );
@@ -233,8 +235,7 @@ class FirebaseService {
       print('✅ [Firebase] Paciente guardado exitosamente');
       print('   RFC: $rfc');
       print('   Nombre: $nombre $apellido');
-      print('   Tipo: $tipoPatiente');
-      print('   Correo: $correo');
+      print('   Origen: $origen');
       print('   Teléfono: $telefono');
     } catch (e) {
       print('❌ [Firebase] Error al guardar paciente: $e');
