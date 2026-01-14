@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/text_input_field.dart';
 import '../services/firebase_service.dart';
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // LOGO - Espacio para imagen
+              // LOGO - Imagen ISSSTE
               Container(
                 height: 100,
                 width: 100,
@@ -35,16 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Center(
-                  child: Text(
-                    'Logo',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                child: Image.asset(
+                  'assets/images/issste.png',
+                  fit: BoxFit.contain,
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // TÍTULO "Iniciar sesión" en color vino
               const Text(
                 'Iniciar sesión',
@@ -54,9 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Color.fromARGB(255, 110, 13, 13),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // CAMPO RFC
               TextInputField(
                 controller: rfcController,
@@ -64,9 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 hintText: 'Ingresa tu RFC',
                 prefixIcon: Icons.assignment,
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // BOTÓN INICIAR
               SizedBox(
                 width: double.infinity,
@@ -78,20 +77,38 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (rfcController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Por favor ingresa tu RFC')),
+                        const SnackBar(
+                          content: Text('Por favor ingresa tu RFC'),
+                        ),
                       );
                       return;
                     }
-                    // Guardar el RFC en el servicio Firebase
-                    FirebaseService().setCurrentUserRfc(rfcController.text);
-                    
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    );
+
+                    // Autenticar anónimamente en Firebase
+                    try {
+                      await FirebaseAuth.instance.signInAnonymously();
+
+                      // Guardar el RFC en el servicio Firebase
+                      FirebaseService().setCurrentUserRfc(rfcController.text);
+
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error de autenticación: $e')),
+                        );
+                      }
+                    }
                   },
                   child: const Text(
                     'Iniciar',
@@ -103,9 +120,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // LINK A REGISTRO
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -145,4 +162,3 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
-

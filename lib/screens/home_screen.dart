@@ -15,10 +15,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Controlador para el nivel de glucosa
   final glucoseController = TextEditingController();
-  
+
   // Variable para guardar la opción seleccionada
   String? selectedMealTime;
-  
+
   // Variables para guardar los datos antes de confirmar
   String? tempGlucose;
   String? tempMealTime;
@@ -42,14 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.favorite,
-                  color: Colors.red,
+                  Icons.bloodtype,
+                  color: Color.fromARGB(255, 110, 13, 13),
                   size: 50,
                 ),
               ),
-              
-              const SizedBox(height: 24),
-              
+
+              const SizedBox(height: 48),
+
               // BOTONES: METAS y HISTORIAL
               Row(
                 children: [
@@ -62,7 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const GoalsScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const GoalsScreen(),
+                          ),
                         );
                       },
                       icon: const Icon(Icons.flag, color: Colors.white),
@@ -82,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const HistoryScreen(),
+                          ),
                         );
                       },
                       icon: const Icon(Icons.history, color: Colors.white),
@@ -94,9 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // RECUADRO BEIGE - REGISTRAR GLUCOSA
               Container(
                 padding: const EdgeInsets.all(16),
@@ -116,9 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Subtítulo "Nivel de glucosa"
                     const Text(
                       'Nivel de glucosa',
@@ -127,9 +131,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Campo de entrada
                     TextField(
                       controller: glucoseController,
@@ -143,20 +147,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         fillColor: Colors.white,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Leyenda "mg/dL"
                     const Text(
                       'mg/dL',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // "¿Cuándo mediste?"
                     const Text(
                       '¿Cuándo mediste?',
@@ -165,9 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Botones: Antes/Después de comer
                     Row(
                       children: [
@@ -214,22 +215,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Botón Guardar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 110, 13, 13),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            110,
+                            13,
+                            13,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         onPressed: () {
                           // Guardar temporalmente
                           tempGlucose = glucoseController.text;
                           tempMealTime = selectedMealTime;
-                          
+
                           // Mostrar modal de confirmación
                           _showConfirmationModal(context);
                         },
@@ -271,26 +277,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 36,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 36),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Título "Confirmar Medición"
               const Text(
                 'Confirmar Medición',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Recuadro beige con datos
               Container(
                 padding: const EdgeInsets.all(12),
@@ -308,9 +307,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Botones de acción
               Row(
                 children: [
